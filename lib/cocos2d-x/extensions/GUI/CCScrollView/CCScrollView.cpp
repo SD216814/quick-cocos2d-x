@@ -27,7 +27,7 @@
 
 NS_CC_EXT_BEGIN
 
-#define SCROLL_DEACCEL_RATE  0.95f
+#define SCROLL_DEACCEL_RATE  0.98f
 #define SCROLL_DEACCEL_DIST  1.0f
 #define BOUNCE_DURATION      0.15f
 #define INSET_RATIO          0.2f
@@ -202,14 +202,14 @@ void CCScrollView::setContentOffset(CCPoint offset, bool animated/* = false*/)
     } 
     else
     { //set the container position directly
-       // if (!m_bBounceable)
-       // {
-        const CCPoint minOffset = this->minContainerOffset();
-        const CCPoint maxOffset = this->maxContainerOffset();
+        if (!m_bBounceable)
+        {
+			const CCPoint minOffset = this->minContainerOffset();
+			const CCPoint maxOffset = this->maxContainerOffset();
             
-        offset.x = MAX(minOffset.x, MIN(maxOffset.x, offset.x));
-        offset.y = MAX(minOffset.y, MIN(maxOffset.y, offset.y));
-      //  }
+			offset.x = MAX(minOffset.x, MIN(maxOffset.x, offset.x));
+			offset.y = MAX(minOffset.y, MIN(maxOffset.y, offset.y));
+        }
 
         m_pContainer->setPosition(offset);
 
@@ -383,6 +383,9 @@ void CCScrollView::deaccelerateScrolling(float dt)
     
     m_pContainer->setPosition(ccpAdd(m_pContainer->getPosition(), m_tScrollDistance));
     
+	maxInset = m_fMaxInset;
+    minInset = m_fMinInset;
+	/*
     if (m_bBounceable)
     {
         maxInset = m_fMaxInset;
@@ -393,7 +396,7 @@ void CCScrollView::deaccelerateScrolling(float dt)
         maxInset = this->maxContainerOffset();
         minInset = this->minContainerOffset();
     }
-    
+    */
     //check to see if offset lies within the inset bounds
 	/*
     newX     = MIN(m_pContainer->getPosition().x, maxInset.x);
@@ -598,7 +601,7 @@ void CCScrollView::visit()
     {
 		this->draw();
     }
-	   m_uOrderOfArrival = 0;// CCNode中也有
+	   m_uOrderOfArrival = 0;// CCNodeÖÐÒ²ÓÐ
     this->afterDraw();
 	if ( m_pGrid && m_pGrid->isActive())
     {
