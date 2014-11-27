@@ -202,14 +202,14 @@ void CCScrollView::setContentOffset(CCPoint offset, bool animated/* = false*/)
     } 
     else
     { //set the container position directly
-        if (!m_bBounceable)
-        {
-            const CCPoint minOffset = this->minContainerOffset();
-            const CCPoint maxOffset = this->maxContainerOffset();
+       // if (!m_bBounceable)
+       // {
+        const CCPoint minOffset = this->minContainerOffset();
+        const CCPoint maxOffset = this->maxContainerOffset();
             
-            offset.x = MAX(minOffset.x, MIN(maxOffset.x, offset.x));
-            offset.y = MAX(minOffset.y, MIN(maxOffset.y, offset.y));
-        }
+        offset.x = MAX(minOffset.x, MIN(maxOffset.x, offset.x));
+        offset.y = MAX(minOffset.y, MIN(maxOffset.y, offset.y));
+      //  }
 
         m_pContainer->setPosition(offset);
 
@@ -598,7 +598,7 @@ void CCScrollView::visit()
     {
 		this->draw();
     }
-	   m_uOrderOfArrival = 0;// CCNodeÖÐÒ²ÓÐ
+	   m_uOrderOfArrival = 0;// CCNodeä¸­ä¹Ÿæœ‰
     this->afterDraw();
 	if ( m_pGrid && m_pGrid->isActive())
     {
@@ -617,20 +617,20 @@ bool CCScrollView::ccTouchBegan(CCTouch* touch, CCEvent* event)
     }
     
     CCRect frame = getViewRect();
-
     //dispatcher does not know about clipping. reject touches outside visible bounds.
     if (m_pTouches->count() > 2 ||
         m_bTouchMoved          ||
         !frame.containsPoint(m_pContainer->convertToWorldSpace(m_pContainer->convertTouchToNodeSpace(touch))))
     {
+		m_pTouches->removeAllObjects();
+		m_bDragging = false;    
+        m_bTouchMoved = false;
         return false;
     }
-
     if (!m_pTouches->containsObject(touch))
     {
         m_pTouches->addObject(touch);
     }
-
     if (m_pTouches->count() == 1)
     { // scrolling
         m_tTouchPoint     = this->convertTouchToNodeSpace(touch);
@@ -659,6 +659,12 @@ void CCScrollView::ccTouchMoved(CCTouch* touch, CCEvent* event)
 
     if (m_pTouches->containsObject(touch))
     {
+		if (m_pTouches->count() > 1)
+		{
+			m_pTouches->removeAllObjects();
+			m_bDragging = false;    
+			m_bTouchMoved = false;
+		}
         if (m_pTouches->count() == 1 && m_bDragging)
         { // scrolling
             CCPoint moveDistance, newPoint, maxInset, minInset;
@@ -666,7 +672,6 @@ void CCScrollView::ccTouchMoved(CCTouch* touch, CCEvent* event)
             float newX, newY;
             
             frame = getViewRect();
-
             newPoint     = this->convertTouchToNodeSpace((CCTouch*)m_pTouches->objectAtIndex(0));
             moveDistance = ccpSub(newPoint, m_tTouchPoint);
             
@@ -683,18 +688,15 @@ void CCScrollView::ccTouchMoved(CCTouch* touch, CCEvent* event)
             {
                 dis = sqrtf(moveDistance.x*moveDistance.x + moveDistance.y*moveDistance.y);
             }
-
             if (!m_bTouchMoved && fabs(convertDistanceFromPointToInch(dis)) < MOVE_INCH )
             {
                 //CCLOG("Invalid movement, distance = [%f, %f], disInch = %f", moveDistance.x, moveDistance.y);
                 return;
             }
-            
             if (!m_bTouchMoved)
             {
                 moveDistance = CCPointZero;
             }
-            
             m_tTouchPoint = newPoint;
             m_bTouchMoved = true;
             
@@ -729,6 +731,12 @@ void CCScrollView::ccTouchMoved(CCTouch* touch, CCEvent* event)
             this->setZoomScale(this->getZoomScale()*len/m_fTouchLength);
         }
     }
+	else
+	{
+		m_pTouches->removeAllObjects();
+		m_bDragging = false;    
+		m_bTouchMoved = false;
+	}
 }
 
 void CCScrollView::ccTouchEnded(CCTouch* touch, CCEvent* event)
@@ -744,8 +752,7 @@ void CCScrollView::ccTouchEnded(CCTouch* touch, CCEvent* event)
             this->schedule(schedule_selector(CCScrollView::deaccelerateScrolling));
         }
         m_pTouches->removeObject(touch);
-    } 
-
+    }
     if (m_pTouches->count() == 0)
     {
 		/**/
@@ -758,8 +765,6 @@ void CCScrollView::ccTouchEnded(CCTouch* touch, CCEvent* event)
 			scene->ccTouchEnded(touch, event);
 		}
 		
-
-
         m_bDragging = false;    
         m_bTouchMoved = false;
     }
